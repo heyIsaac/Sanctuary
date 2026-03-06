@@ -7,13 +7,21 @@ public class Porta : MonoBehaviour
 
     void Start()
     {
-        // Pega o cérebro de animação que acabamos de configurar
         animator = GetComponent<Animator>();
+        if (animator == null)
+        {
+            Debug.LogError("ERRO: O script Porta não encontrou o componente Animator na Porta_Automatica!");
+        }
     }
 
     public void AlternarPorta()
     {
-        estadoAberta = !estadoAberta; // Se está fechada, abre. Se está aberta, fecha.
-        animator.SetBool("isAberta", estadoAberta);
+        estadoAberta = !estadoAberta;
+        Debug.Log("4. A porta agora deve estar: " + (estadoAberta ? "ABERTA" : "FECHADA"));
+
+        if (animator != null)
+        {
+            animator.SetBool("isAberta", estadoAberta);
+        }
     }
 }
