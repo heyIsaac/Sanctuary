@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7157929525278824459}
   - component: {fileID: 1494402679335645800}
   - component: {fileID: 7359840525765979449}
+  - component: {fileID: 6736577930977216822}
   m_Layer: 0
   m_Name: Zombie_01
   m_TagString: Untagged
@@ -151,3 +152,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZumbiPerseguidor
   jogador: {fileID: 0}
+--- !u!114 &6736577930977216822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3466995619176154356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88d2c447fc0c7f023a0ba5f3c4636079, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZumbiVida
+  vidas: 3
