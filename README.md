@@ -54,3 +54,19 @@ O projeto foi construído seguindo boas práticas de engenharia de software com 
 - **ArmaJogador.cs:** Gerencia a leitura de botões com o Novo _InputSystem_ da Unity. Aciona arquivos dinâmicos de `AudioSource` e detecta hits via Raycast para enviar a função de dano.
 - **Porta.cs / ZumbiVida.cs:** Scripts reativos. Eles não "procuram" informações ativamente (o que gastaria muito processamento), apenas reagem quando métodos públicos como `AlternarPorta()` ou `ReceberDano()` são chamados externamente pelo jogador.
 - **ZumbiPerseguidor.cs:** Utiliza a biblioteca `UnityEngine.AI` para calcular o menor caminho possível até o jogador em tempo real, baseando-se no _"Bake"_ do chão azul (NavMesh Surface). Ele controla as variáveis _Bool_ e _Trigger_ enviadas para o Cérebro de Animações do modelo 3D.
+
+## 🧠 Dúvidas e Soluções Encontradas (Diário de Desenvolvimento)
+
+Durante a concepção e desenvolvimento deste ambiente em Realidade Virtual, alguns desafios técnicos surgiram, exigindo pesquisa e aplicação de lógicas de engenharia de software para contorná-los de forma otimizada.
+
+### 1. Inteligência Artificial do Inimigo (Perseguição)
+* **Dúvida/Desafio:** Como criar uma IA que persiga o jogador ativamente, desviando do terreno irregular e de paredes, sem causar queda de performance (frame drops) e sem que o zumbi tentasse atravessar as paredes em linha reta?
+* **Solução Encontrada:** A solução ideal para manter o jogo leve no Meta Quest foi utilizar o sistema nativo de `Navigation Mesh` (NavMesh) da Unity. Em vez de usar cálculos matemáticos complexos como Raycasts contínuos ou `Vector3.MoveTowards`, o chão do cenário foi mapeado e transformado em uma superfície de navegação (`NavMesh Surface`). 
+* **O Truque da Porta:** O maior problema ocorreu com a porta automática. Quando fechada, a Unity cortava o caminho azul (NavMesh), impedindo o zumbi de calcular a rota até o jogador. A solução foi aplicar um componente `NavMesh Modifier` no objeto da porta, alterando seu modo para **"Remove Object"** e marcando "Apply to children". Isso instruiu a Unity a ignorar a porta no cálculo do mapa de navegação. Assim, o zumbi tenta passar pelo vão livremente, sendo bloqueado apenas fisicamente quando a porta está fechada, criando um efeito extremamente natural.
+
+### 2. Sistema de Animação e Sincronia
+* **Dúvida/Desafio:** Como integrar um asset de modelo 3D externo e sincronizar as animações (ficar parado, caminhar e morrer) de forma fluida com a Inteligência Artificial e com o sistema de vida, sem gerar "Glitches" (como o corpo deslizando pelo chão após morrer)?
+* **Solução Encontrada:** Ao importar o modelo 3D do zumbi, ele inicialmente perdeu as texturas devido à diferença entre os sistemas de renderização. A primeira solução foi utilizar o `Render Pipeline Converter` para atualizar os materiais para a **URP (Universal Render Pipeline)**. 
+* Em seguida, foi estruturada uma Máquina de Estados (State Machine) através do `Animator Controller` ("CerebroZumbi"). Foram definidos dois parâmetros cruciais:
+  1. Um `Bool (isWalking)`: Controlado pelo script `ZumbiPerseguidor`. O código lê a velocidade vetorial do motor de física do inimigo (`agente.velocity.magnitude`). Se a velocidade for maior que um valor mínimo (0.1f), a animação de caminhada é ativada. Ao esbarrar na porta ou alcançar o jogador (velocidade zero), a animação retorna dinamicamente para o *Idle* (Parado).
+  2. Um `Trigger (morreu)`: Acionado pelo script `ZumbiVida`. O grande trunfo aqui foi a ordem de execução do código de morte. Para evitar bugs físicos, ao receber o terceiro tiro, o script executa 3 passos simultâneos: ativa a animação de queda, desliga instantaneamente o `NavMeshAgent` (cortando o "motor" do inimigo) e desliga o `CapsuleCollider` (para que o jogador possa andar sobre o corpo derrotado). O corpo é então limpo da memória via `Destroy(gameObject, 4f)` para salvar recursos do headset VR.
